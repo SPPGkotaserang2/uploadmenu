@@ -120,13 +120,14 @@
             background: #ecfdf5;
             border: 1px solid #10b981;
             color: #065f46;
-            padding: 15px;
+            padding: 20px;
             border-radius: var(--radius-md);
             text-align: center;
             font-weight: 600;
             font-size: 14px;
             margin-bottom: 20px;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             gap: 10px;
@@ -179,13 +180,13 @@
 
 <div class="wrapper">
 
-    <!-- FORM INPUT TOKEN UTAMA (MUNCUL JIKA TOKEN BELUM ADA) -->
+    <!-- FORM INPUT TOKEN UTAMA -->
     <div class="card" id="tokenCard">
         <div class="upload-logo-container">
             <img src="logo.png" alt="Logo Instansi" onerror="this.src='https://via.placeholder.com/80?text=LOGO'">
         </div>
         <div class="card-header" style="justify-content: center; border-bottom: none; margin-bottom: 10px;">
-            <h2 style="text-align: center;">SELAMAT DATANG DI SPPG KOTA SERANG SERANG SERANG 2</h2>
+            <h2 style="text-align: center;">SELAMAT DATANG DI SPPG KOTA SERANG 2</h2>
         </div>
         <p style="text-align: center; font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
             MASUKAN KODE YANG DI BERIKAN ADMIN
@@ -200,7 +201,7 @@
         <div id="tokenStatus" class="status"></div>
     </div>
 
-    <!-- UTAMA (PUBLIK): UPLOAD FOTO & NAMA FILE OTOMATIS LOWERCASE + FORMAT .JPG -->
+    <!-- UTAMA (PUBLIK): UPLOAD FOTO OTOMATIS -->
     <div class="card hidden" id="publicUploadCard">
         <div class="upload-logo-container">
             <img src="logo.png" alt="Logo Instansi" onerror="this.src='https://via.placeholder.com/80?text=LOGO'">
@@ -216,16 +217,33 @@
         
         <!-- PEMBERITAHUAN JIKA SUDAH UPLOAD HARI INI -->
         <div id="alreadyUploadedAlert" class="alert-already-uploaded hidden">
-            <i class="fa-solid fa-circle-check" style="font-size: 18px;"></i>
-            <span>TERIMAKASIH KAMU SUDAH UPLOAD HARI INI, TUNGGU BESOK YAAA...</span>
+            <i class="fa-solid fa-circle-check" style="font-size: 28px; color: #10b981;"></i>
+            <span style="font-size: 15px; font-weight: 700;">TERIMAKASIH, ANDA SUDAH UPLOAD HARI INI!</span>
+            <span style="font-size: 12px; font-weight: 400; color: #047857;">Silakan kembali lagi besok untuk mengunggah menu baru.</span>
         </div>
-
-        <!-- FORM UPLOAD AKAN DISEMBUNYIKAN JIKA SUDAH UPLOAD -->
+         <!-- dibawah ini teks tersembuyi-->
+        <!-- FORM UPLOAD -->
+         <div id="elemenSaya" style="display: none;">
         <div id="uploadFormSection">
+            <!-- PILIH FOLDER KHUSUS BULAN SEKARANG -->
             <div class="form-group">
-                <label for="filePathFile">UPLOAD MENU HARI INI:</label>
-                <input type="text" id="filePathFile" readonly style="background: #f1f5f9; font-weight: 600; color: var(--primary);" placeholder="Nama file & folder otomatis">
-                <small style="color: var(--text-muted); font-size: 12px; margin-top: 4px; display: block;">Lokasi folder dan nama file disesuaikan secara otomatis berdasarkan bulan dan tanggal sistem.</small>
+                <label for="targetFolderSelect"><i class="fa-solid fa-folder-tree"></i> Pilih Folder Tujuan (Khusus Bulan Berjalan):</label>
+                <div class="flex-row">
+                    <select id="targetFolderSelect" onchange="onFolderSelectedFromUpload()">
+                        <option value="">-- Memuat folder bulan ini... --</option>
+                    </select>
+                    <button class="btn btn-primary" style="width: 110px;" onclick="loadGitHubFoldersForUpload()" title="Muat ulang folder">
+                        <i class="fa-solid fa-rotate"></i> Refresh
+                    </button>
+                </div>
+            </div>
+            </div>
+            <!-- dibawah ini teks tersembuyi-->
+            <div id="elemenSaya" style="display: none;">
+            <div class="form-group">
+                <label for="filePathFile">Path File Lengkap (Folder/NamaFile):</label>
+                <input type="text" id="filePathFile" readonly style="background: #f1f5f9; font-weight: 600; color: var(--primary);">
+            </div> 
             </div>
 
             <div class="form-group">
@@ -238,12 +256,11 @@
             </div>
 
             <button class="btn btn-success" onclick="uploadFileToGitHub()">
-                <i class="fa-solid fa-cloud-arrow-up"></i> LIHAT FOTO YANG DI UNGGAH
+                <i class="fa-solid fa-cloud-arrow-up"></i> UPLOAD FOTO MENU
             </button>
             <div id="statusFile" class="status"></div>
         </div>
 
-        <!-- FITUR TOMBOL MEMBUKA LINK WEB (SILAHKAN ISI LINK-NYA DI ATRIBUT href DI BAWAH INI) -->
         <div style="margin-top: 15px;">
             <a href="https://sppgkotaserang2.github.io/menumbg/" target="_blank" class="btn btn-primary">
                 <i class="fa-solid fa-globe"></i> LIHAT FOTO MENU DISINI
@@ -255,7 +272,7 @@
         </div>
     </div>
 
-    <!-- PANEL ADMIN: LIHAT FILE, EDIT, PRATINJAU GAMBAR, & HAPUS FILE -->
+    <!-- PANEL ADMIN -->
     <div id="adminPanel" class="hidden">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <span class="admin-badge"><i class="fa-solid fa-shield-halved"></i> Mode Administrator Aktif</span>
@@ -283,9 +300,9 @@
             </div>
 
             <div class="form-group">
-                <label for="filePathCode">Atau Ketik Path Manual (Contoh: <code>index.html</code>, <code>september 2026/sep15.jpg</code>):</label>
+                <label for="filePathCode">Atau Ketik Path Manual:</label>
                 <div class="flex-row">
-                    <input type="text" id="filePathCode" placeholder="folder/nama-file.html">
+                    <input type="text" id="filePathCode" placeholder="folder/nama-file.jpg">
                     <button class="btn btn-primary" style="width: 130px;" onclick="loadExistingCode()">Muat File</button>
                 </div>
             </div>
@@ -313,7 +330,7 @@
         </div>
     </div>
 
-    <!-- TOMBOL AKSES PANEL ADMIN DI BAGIAN PALING BAWAH -->
+    <!-- TOMBOL AKSES PANEL ADMIN -->
     <div style="text-align: center; margin-top: 25px; margin-bottom: 0;" id="adminTriggerWrapper">
         <button class="btn-admin-access" onclick="openLoginModal()">
             <i class="fa-solid fa-lock" id="lockIcon"></i> <span id="adminBtnText">Admin</span>
@@ -349,7 +366,6 @@
     const GITHUB_BRANCH = 'main'; 
     // ------------------------------------
 
-    // Kredensial Admin
     const ADMIN_USER = 'Serang';
     const ADMIN_PASS = 'Mandiri02srg';
 
@@ -396,7 +412,7 @@
             publicUploadCard.classList.remove('hidden');
             adminTriggerWrapper.classList.remove('hidden');
             displayLiveDate();
-            checkTodayFileExists(); // Cek otomatis apakah file hari ini sudah ada di GitHub
+            loadGitHubFoldersForUpload();
 
             if (localStorage.getItem('isAdminLoggedIn') === 'true') {
                 toggleAdminMode(true);
@@ -446,7 +462,7 @@
         if (isActive) {
             adminPanel.classList.remove('hidden');
             lockIcon.className = "fa-solid fa-shield-halved";
-            adminBtnText.innerText = "Panel Admin Aktif";
+            adminBtnText.innerText = "Mode Administrator Aktif";
             loadGitHubFileList();
             window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         } else {
@@ -461,47 +477,103 @@
         checkTokenAndBoot();
     };
 
-    // ==========================================
-    // FUNGSI BANTUAN: AMBIL PATH OTOMATIS DENGAN FOLDER
-    // ==========================================
-    function getTodayFilePath() {
-        const now = new Date();
-        const monthNamesLong = ["januari", "februari", "maret", "april", "mei", "juni", "juli", "agustus", "september", "oktober", "november", "desember"];
-        const monthsShort = ["jan", "feb", "mar", "apr", "mei", "jun", "jul", "agu", "sep", "okt", "nov", "des"];
-
-        // Format nama folder: e.g. "september 2026"
-        const folderName = `${monthNamesLong[now.getMonth()]} ${now.getFullYear()}`;
-        
-        // Format nama file: e.g. "sep15.jpg"
-        const fileName = `${monthsShort[now.getMonth()]}${now.getDate()}.jpg`;
-
-        // Hasil gabungan: "september 2026/sep15.jpg"
-        return `${folderName}/${fileName}`;
-    }
-
-    // ==========================================
-    // MENAMPILKAN HARI & TANGGAL LIVE & NAMA FILE
-    // ==========================================
     function displayLiveDate() {
         const liveDateText = document.getElementById('liveDateText');
         const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         const now = new Date();
         const formattedDate = now.toLocaleDateString('id-ID', options);
         liveDateText.innerHTML = `<i class="fa-solid fa-calendar-days"></i> ${formattedDate}`;
-
-        // Set otomatis path (folder/nama_file) sesuai bulan dan tanggal hari ini
-        document.getElementById('filePathFile').value = getTodayFilePath();
     }
 
-    // ==========================================
-    // CEK APAKAH FILE HARI INI SUDAH ADA DI GITHUB
-    // ==========================================
-    async function checkTodayFileExists() {
+    // Memuat folder dari GitHub dan menyaring HANYA yang sesuai dengan bulan dan tahun saat ini
+    async function loadGitHubFoldersForUpload() {
         const token = getGitHubToken();
-        const autoFilePath = getTodayFilePath();
+        const selectEl = document.getElementById('targetFolderSelect');
+        selectEl.innerHTML = '<option value="">Membaca folder dari Sistem...</option>';
 
-        // Menggunakan encodeURI agar karakter spasi pada folder diubah menjadi %20 secara aman
-        const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${encodeURI(autoFilePath)}`;
+        const now = new Date();
+        const monthNames = ["januari", "februari", "maret", "april", "mei", "juni", "juli", "agustus", "september", "oktober", "november", "desember"];
+        const currentMonthName = monthNames[now.getMonth()];
+        const currentYear = now.getFullYear();
+        const targetValidFolder = `${currentMonthName} ${currentYear}`.toLowerCase(); // contoh: "maret 2026"
+
+        const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/git/trees/${GITHUB_BRANCH}?recursive=1`;
+
+        try {
+            const response = await fetch(apiUrl, {
+                headers: {
+                    'Authorization': `token ${token}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                
+                // Ambil daftar folder, lalu saring persis harus cocok dengan bulan dan tahun sekarang
+                const allFolders = [...new Set(data.tree.filter(item => item.type === 'tree').map(item => item.path))];
+                const validFolders = allFolders.filter(folder => folder.toLowerCase() === targetValidFolder);
+
+                selectEl.innerHTML = '<option value="">-- Pilih Folder Bulan Ini --</option>';
+                
+                if (validFolders.length === 0) {
+                    selectEl.innerHTML = `<option value="">Folder "${targetValidFolder}" belum tersedia di Sistem</option>`;
+                    return;
+                }
+
+                validFolders.forEach(folder => {
+                    const opt = document.createElement('option');
+                    opt.value = folder;
+                    opt.textContent = folder;
+                    opt.selected = true; // Otomatis terpilih
+                    selectEl.appendChild(opt);
+                });
+
+                onFolderSelectedFromUpload();
+            } else {
+                selectEl.innerHTML = '<option value="">Gagal memuat folder dari Sistem</option>';
+            }
+        } catch (error) {
+            selectEl.innerHTML = '<option value="">Terjadi kesalahan koneksi</option>';
+        }
+    }
+
+    function onFolderSelectedFromUpload() {
+        const folderSelect = document.getElementById('targetFolderSelect');
+        const selectedFolder = folderSelect.value.trim();
+        const statusEl = document.getElementById('statusFile');
+
+        const now = new Date();
+        const monthNames = ["januari", "februari", "maret", "april", "mei", "juni", "juli", "agustus", "september", "oktober", "november", "desember"];
+        const currentMonthName = monthNames[now.getMonth()];
+        const currentYear = now.getFullYear();
+        const targetValidFolder = `${currentMonthName} ${currentYear}`.toLowerCase();
+
+        // Validasi ketat: Tolak jika folder yang dipilih bukan bulan ini
+        if (selectedFolder && selectedFolder.toLowerCase() !== targetValidFolder) {
+            statusEl.style.color = '#dc2626';
+            statusEl.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Ditolak! Anda hanya boleh mengunggah ke folder bulan ini (<b>${targetValidFolder}</b>).`;
+            document.getElementById('filePathFile').value = '';
+            folderSelect.value = '';
+            return;
+        }
+
+        statusEl.innerHTML = '';
+        const monthsShort = ["jan", "feb", "mar", "apr", "mei", "jun", "jul", "agu", "sep", "okt", "nov", "des"];
+        const fileName = `${monthsShort[now.getMonth()]}${now.getDate()}.jpg`;
+
+        if (selectedFolder) {
+            const fullPath = `${selectedFolder}/${fileName}`;
+            document.getElementById('filePathFile').value = fullPath;
+            checkTodayFileExists(fullPath);
+        } else {
+            document.getElementById('filePathFile').value = '';
+        }
+    }
+
+    async function checkTodayFileExists(filePath) {
+        const token = getGitHubToken();
+        const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${encodeURI(filePath)}`;
 
         try {
             const response = await fetch(apiUrl, {
@@ -512,16 +584,11 @@
             });
 
             const alertBox = document.getElementById('alreadyUploadedAlert');
-            const uploadFormSection = document.getElementById('uploadFormSection');
 
             if (response.ok) {
-                // File sudah ada di GitHub
                 alertBox.classList.remove('hidden');
-                uploadFormSection.classList.add('hidden');
             } else {
-                // File belum ada
                 alertBox.classList.add('hidden');
-                uploadFormSection.classList.remove('hidden');
             }
         } catch (error) {
             console.error("Gagal memeriksa status file:", error);
@@ -536,13 +603,10 @@
         }
     }
 
-    // ==========================================
-    // AMBIL DAFTAR FILE DARI GITHUB REPO
-    // ==========================================
     async function loadGitHubFileList() {
         const token = getGitHubToken();
         const selectEl = document.getElementById('repoFileSelect');
-        selectEl.innerHTML = '<option value="">Sedang memindai file di GitHub...</option>';
+        selectEl.innerHTML = '<option value="">Sedang memindai file di Sistem...</option>';
 
         const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/git/trees/${GITHUB_BRANCH}?recursive=1`;
 
@@ -572,7 +636,7 @@
                     selectEl.appendChild(opt);
                 });
             } else {
-                selectEl.innerHTML = '<option value="">Gagal memuat daftar file (Token salah/expired)</option>';
+                selectEl.innerHTML = '<option value="">Gagal memuat daftar file</option>';
             }
         } catch (error) {
             selectEl.innerHTML = '<option value="">Terjadi kesalahan koneksi</option>';
@@ -588,23 +652,26 @@
         }
     }
 
-    // ==========================================
-    // UPLOAD FOTO / FILE KE GITHUB
-    // ==========================================
     async function uploadFileToGitHub() {
         const token = getGitHubToken();
         const fileInput = document.getElementById('fileInput');
         const filePath = document.getElementById('filePathFile').value.trim();
         const statusEl = document.getElementById('statusFile');
 
-        if (fileInput.files.length === 0 || !filePath) {
+        if (!filePath) {
+            statusEl.style.color = '#dc2626';
+            statusEl.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Pilih folder tujuan yang valid terlebih dahulu!';
+            return;
+        }
+
+        if (fileInput.files.length === 0) {
             statusEl.style.color = '#dc2626';
             statusEl.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Silakan pilih berkas foto terlebih dahulu!';
             return;
         }
 
         statusEl.style.color = '#4f46e5';
-        statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memeriksa ketersediaan file';
+        statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memeriksa ketersediaan file...';
 
         const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${encodeURI(filePath)}`;
 
@@ -618,8 +685,7 @@
 
             if (checkRes.ok) {
                 statusEl.style.color = '#dc2626';
-                statusEl.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Peringatan: File dengan nama <b>${filePath}</b> sudah ada di dalam repository!`;
-                checkTodayFileExists(); // Sembunyikan form jika ternyata sudah ada
+                statusEl.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Peringatan: File <b>${filePath}</b> sudah ada!`;
                 return;
             }
         } catch (e) {}
@@ -631,7 +697,7 @@
         reader.readAsDataURL(file);
         reader.onload = function () {
             const base64Content = reader.result.split(',')[1];
-            sendDataToGitHubNewOnly(token, filePath, base64Content, statusEl, `Upload file otomatis ${filePath} via Web UI`);
+            sendDataToGitHubNewOnly(token, filePath, base64Content, statusEl, `Tambah file ${filePath}`);
         };
         reader.onerror = function (error) {
             statusEl.style.color = '#dc2626';
@@ -639,9 +705,6 @@
         };
     }
 
-    // ==========================================
-    // MUAT KODE / GAMBAR DARI GITHUB (ADMIN)
-    // ==========================================
     async function loadExistingCode() {
         const token = getGitHubToken();
         const filePath = document.getElementById('filePathCode').value.trim();
@@ -653,14 +716,14 @@
 
         if (!filePath) {
             statusEl.style.color = '#dc2626';
-            statusEl.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Path file tidak boleh kosong!';
+            statusEl.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> file tidak boleh kosong!';
             return;
         }
 
         const isImage = /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(filePath);
 
         statusEl.style.color = '#4f46e5';
-        statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengambil data';
+        statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengambil data...';
 
         const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${encodeURI(filePath)}`;
 
@@ -701,9 +764,6 @@
         }
     }
 
-    // ==========================================
-    // UPDATE / SIMPAN KODE KE GITHUB (ADMIN)
-    // ==========================================
     function updateCodeToGitHub() {
         const token = getGitHubToken();
         const filePath = document.getElementById('filePathCode').value.trim();
@@ -720,12 +780,9 @@
         statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengonversi data...';
 
         const base64Content = btoa(unescape(encodeURIComponent(codeContent)));
-        sendDataToGitHubWithSha(token, filePath, base64Content, statusEl, `Update kode ${filePath} via Admin Panel`, true);
+        sendDataToGitHubWithSha(token, filePath, base64Content, statusEl, `Update kode ${filePath}`, true);
     }
 
-    // ==========================================
-    // HAPUS FILE DARI GITHUB (ADMIN)
-    // ==========================================
     async function deleteFileFromGitHub() {
         const token = getGitHubToken();
         const filePath = document.getElementById('filePathCode').value.trim();
@@ -737,12 +794,12 @@
             return;
         }
 
-        if (!confirm(`Apakah Anda yakin ingin menghapus file "${filePath}" secara permanen dari GitHub?`)) {
+        if (!confirm(`Apakah Anda yakin ingin menghapus file "${filePath}" dari Sistem?`)) {
             return;
         }
 
         statusEl.style.color = '#4f46e5';
-        statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memeriksa file di GitHub...';
+        statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memeriksa file...';
 
         const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${encodeURI(filePath)}`;
 
@@ -773,7 +830,7 @@
                     'Accept': 'application/vnd.github.v3+json'
                 },
                 body: JSON.stringify({
-                    message: `Hapus file ${filePath} via Admin Panel`,
+                    message: `Hapus file ${filePath}`,
                     sha: sha,
                     branch: GITHUB_BRANCH
                 })
@@ -781,7 +838,7 @@
 
             if (deleteRes.ok) {
                 statusEl.style.color = '#10b981';
-                statusEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> File berhasil dihapus dari GitHub!';
+                statusEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> File berhasil dihapus!';
                 
                 document.getElementById('filePathCode').value = '';
                 document.getElementById('codeContent').value = '';
@@ -789,7 +846,6 @@
                 document.getElementById('codeEditorGroup').classList.remove('hidden');
                 
                 loadGitHubFileList();
-                checkTodayFileExists(); // Perbarui status cek harian
             } else {
                 const errResult = await deleteRes.json();
                 statusEl.style.color = '#dc2626';
@@ -801,13 +857,10 @@
         }
     }
 
-    // ==========================================
-    // FUNGSI PENDUKUNG: UPLOAD FILE BARU
-    // ==========================================
     async function sendDataToGitHubNewOnly(token, filePath, base64Content, statusEl, commitMessage) {
         const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${encodeURI(filePath)}`;
         
-        statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengirim file baru ke Sistem';
+        statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengirim file ke Sistem...';
 
         try {
             const response = await fetch(apiUrl, {
@@ -828,12 +881,12 @@
 
             if (response.ok) {
                 statusEl.style.color = '#10b981';
-                statusEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> Berhasil! File sukses di-upload.';
+                statusEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> Berhasil! File sukses diunggah.';
                 loadGitHubFileList();
-                checkTodayFileExists(); // Langsung perbarui tampilan agar muncul peringatan "sudah upload hari ini"
+                checkTodayFileExists(filePath);
             } else {
                 statusEl.style.color = '#dc2626';
-                statusEl.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Gagal: ' + (result.message || 'File sudah ada atau terjadi kesalahan sistem');
+                statusEl.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Gagal: ' + (result.message || 'Terjadi kesalahan sistem');
             }
         } catch (error) {
             statusEl.style.color = '#dc2626';
@@ -841,13 +894,10 @@
         }
     }
 
-    // ==========================================
-    // FUNGSI PENDUKUNG: UPDATE FILE DENGAN SHA
-    // ==========================================
     async function sendDataToGitHubWithSha(token, filePath, base64Content, statusEl, commitMessage, isAdmin) {
         const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${encodeURI(filePath)}`;
         
-        statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengecek status file lama...';
+        statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengecek status file...';
         let sha = null;
 
         try {
@@ -864,7 +914,7 @@
             }
         } catch (e) {}
 
-        statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan perubahan ke Sistem...';
+        statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan perubahan...';
 
         try {
             const response = await fetch(apiUrl, {
@@ -886,19 +936,17 @@
 
             if (response.ok) {
                 statusEl.style.color = '#10b981';
-                statusEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> Berhasil! File sukses diperbarui.';
+                statusEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> Berhasil diperbarui!';
                 if (isAdmin) {
-                    loadExistingCode();
+                    loadGitHubFileList();
                 }
-                loadGitHubFileList();
-                checkTodayFileExists();
             } else {
                 statusEl.style.color = '#dc2626';
                 statusEl.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Gagal: ' + (result.message || 'Kesalahan sistem');
             }
         } catch (error) {
             statusEl.style.color = '#dc2626';
-            statusEl.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Error koneksi: ' + error.message;
+            statusEl.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Error: ' + error.message;
         }
     }
 </script>
