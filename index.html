@@ -224,8 +224,8 @@
         <div id="uploadFormSection">
             <div class="form-group">
                 <label for="filePathFile">UPLOAD MENU HARI INI:</label>
-                <input type="text" id="filePathFile" readonly style="background: #f1f5f9; font-weight: 600; color: var(--primary);" placeholder="Nama file otomatis">
-                <small style="color: var(--text-muted); font-size: 12px; margin-top: 4px; display: block;">Nama file akan disesuaikan secara otomatis berdasarkan tanggal sistem.</small>
+                <input type="text" id="filePathFile" readonly style="background: #f1f5f9; font-weight: 600; color: var(--primary);" placeholder="Nama file & folder otomatis">
+                <small style="color: var(--text-muted); font-size: 12px; margin-top: 4px; display: block;">Lokasi folder dan nama file disesuaikan secara otomatis berdasarkan bulan dan tanggal sistem.</small>
             </div>
 
             <div class="form-group">
@@ -283,7 +283,7 @@
             </div>
 
             <div class="form-group">
-                <label for="filePathCode">Atau Ketik Path Manual (Contoh: <code>index.html</code>, <code>assets/foto.jpg</code>):</label>
+                <label for="filePathCode">Atau Ketik Path Manual (Contoh: <code>index.html</code>, <code>september 2026/sep15.jpg</code>):</label>
                 <div class="flex-row">
                     <input type="text" id="filePathCode" placeholder="folder/nama-file.html">
                     <button class="btn btn-primary" style="width: 130px;" onclick="loadExistingCode()">Muat File</button>
@@ -462,6 +462,24 @@
     };
 
     // ==========================================
+    // FUNGSI BANTUAN: AMBIL PATH OTOMATIS DENGAN FOLDER
+    // ==========================================
+    function getTodayFilePath() {
+        const now = new Date();
+        const monthNamesLong = ["januari", "februari", "maret", "april", "mei", "juni", "juli", "agustus", "september", "oktober", "november", "desember"];
+        const monthsShort = ["jan", "feb", "mar", "apr", "mei", "jun", "jul", "agu", "sep", "okt", "nov", "des"];
+
+        // Format nama folder: e.g. "september 2026"
+        const folderName = `${monthNamesLong[now.getMonth()]} ${now.getFullYear()}`;
+        
+        // Format nama file: e.g. "sep15.jpg"
+        const fileName = `${monthsShort[now.getMonth()]}${now.getDate()}.jpg`;
+
+        // Hasil gabungan: "september 2026/sep15.jpg"
+        return `${folderName}/${fileName}`;
+    }
+
+    // ==========================================
     // MENAMPILKAN HARI & TANGGAL LIVE & NAMA FILE
     // ==========================================
     function displayLiveDate() {
@@ -471,12 +489,8 @@
         const formattedDate = now.toLocaleDateString('id-ID', options);
         liveDateText.innerHTML = `<i class="fa-solid fa-calendar-days"></i> ${formattedDate}`;
 
-        // Set otomatis nama file input sesuai tanggal hari ini
-        const months = ["jan", "feb", "mar", "apr", "mei", "jun", "jul", "agu", "sep", "okt", "nov", "des"];
-        const monthName = months[now.getMonth()];
-        const day = now.getDate();
-        const autoFileName = `${monthName}${day}.jpg`;
-        document.getElementById('filePathFile').value = autoFileName;
+        // Set otomatis path (folder/nama_file) sesuai bulan dan tanggal hari ini
+        document.getElementById('filePathFile').value = getTodayFilePath();
     }
 
     // ==========================================
@@ -484,11 +498,10 @@
     // ==========================================
     async function checkTodayFileExists() {
         const token = getGitHubToken();
-        const now = new Date();
-        const months = ["jan", "feb", "mar", "apr", "mei", "jun", "jul", "agu", "sep", "okt", "nov", "des"];
-        const autoFileName = `${months[now.getMonth()]}${now.getDate()}.jpg`;
+        const autoFilePath = getTodayFilePath();
 
-        const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${autoFileName}`;
+        // Menggunakan encodeURI agar karakter spasi pada folder diubah menjadi %20 secara aman
+        const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${encodeURI(autoFilePath)}`;
 
         try {
             const response = await fetch(apiUrl, {
@@ -593,7 +606,7 @@
         statusEl.style.color = '#4f46e5';
         statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memeriksa ketersediaan file';
 
-        const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${filePath}`;
+        const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${encodeURI(filePath)}`;
 
         try {
             const checkRes = await fetch(apiUrl, {
@@ -649,7 +662,7 @@
         statusEl.style.color = '#4f46e5';
         statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengambil data';
 
-        const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${filePath}`;
+        const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${encodeURI(filePath)}`;
 
         try {
             const response = await fetch(apiUrl, {
@@ -731,7 +744,7 @@
         statusEl.style.color = '#4f46e5';
         statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memeriksa file di GitHub...';
 
-        const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${filePath}`;
+        const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${encodeURI(filePath)}`;
 
         try {
             const getRes = await fetch(apiUrl, {
@@ -792,7 +805,7 @@
     // FUNGSI PENDUKUNG: UPLOAD FILE BARU
     // ==========================================
     async function sendDataToGitHubNewOnly(token, filePath, base64Content, statusEl, commitMessage) {
-        const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${filePath}`;
+        const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${encodeURI(filePath)}`;
         
         statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengirim file baru ke Sistem';
 
@@ -832,7 +845,7 @@
     // FUNGSI PENDUKUNG: UPDATE FILE DENGAN SHA
     // ==========================================
     async function sendDataToGitHubWithSha(token, filePath, base64Content, statusEl, commitMessage, isAdmin) {
-        const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${filePath}`;
+        const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${encodeURI(filePath)}`;
         
         statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengecek status file lama...';
         let sha = null;
