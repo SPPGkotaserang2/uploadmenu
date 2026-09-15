@@ -226,8 +226,10 @@
         <div id="uploadFormSection">
             <!-- PILIH FOLDER KHUSUS BULAN SEKARANG -->
             <div class="form-group">
-                <label for="targetFolderSelect"><i class="fa-solid fa-folder-tree"></i> Pilih Folder Tujuan (Khusus Bulan Berjalan):</label>
-                <div class="flex-row">
+              <div id="elemenSaya" style="display: none;">
+                 <label for="targetFolderSelect"><i class="fa-solid fa-folder-tree"></i> Pilih Folder Tujuan (Khusus Bulan Berjalan):</label>
+                <div class="flex-row">  
+                     </div>
                     <select id="targetFolderSelect" onchange="onFolderSelectedFromUpload()">
                         <option value="">-- Memuat folder bulan ini... --</option>
                     </select>
@@ -236,6 +238,7 @@
                     </button>
                 </div>
             </div>
+            
             <!-- dibawah ini teks tersembuyi-->
             <div id="elemenSaya" style="display: none;">
             <div class="form-group">
