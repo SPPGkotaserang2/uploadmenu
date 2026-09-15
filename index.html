@@ -96,6 +96,7 @@
         .btn {
             width: 100%; padding: 13px; border: none; border-radius: var(--radius-md); font-size: 14px;
             font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s; color: white;
+            text-decoration: none;
         }
         .btn-primary { background: var(--primary); }
         .btn-primary:hover { background: var(--primary-hover); }
@@ -113,6 +114,23 @@
 
         /* Status text */
         .status { font-size: 13px; font-weight: 500; margin-top: 15px; display: flex; align-items: center; gap: 8px; }
+
+        /* Banner Pemberitahuan Sudah Upload */
+        .alert-already-uploaded {
+            background: #ecfdf5;
+            border: 1px solid #10b981;
+            color: #065f46;
+            padding: 15px;
+            border-radius: var(--radius-md);
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
 
         /* Image Preview Box inside Admin */
         .preview-container {
@@ -196,25 +214,41 @@
             <h2 style="text-align: center;">SPPG KOTA SERANG 2</h2>
         </div>
         
-        <div class="form-group">
-            <label for="filePathFile">UPLOAD MENU HARI INI:</label>
-            <input type="text" id="filePathFile" readonly style="background: #f1f5f9; font-weight: 600; color: var(--primary);" placeholder="Nama file otomatis">
-            <small style="color: var(--text-muted); font-size: 12px; margin-top: 4px; display: block;">Nama file akan disesuaikan secara otomatis berdasarkan tanggal sistem.</small>
+        <!-- PEMBERITAHUAN JIKA SUDAH UPLOAD HARI INI -->
+        <div id="alreadyUploadedAlert" class="alert-already-uploaded hidden">
+            <i class="fa-solid fa-circle-check" style="font-size: 18px;"></i>
+            <span>TERIMAKASIH KAMU SUDAH UPLOAD HARI INI, TUNGGU BESOK YAAA...</span>
         </div>
 
-        <div class="form-group">
-            <label>Pilih Berkas:</label>
-            <div class="upload-dropbox" onclick="document.getElementById('fileInput').click()">
-                <i class="fa-regular fa-folder-open"></i>
-                <p id="fileLabelText"><b>UNGGAH FOTO MENU</b></p>
-                <input type="file" id="fileInput" onchange="handleFileSelection(this)">
+        <!-- FORM UPLOAD AKAN DISEMBUNYIKAN JIKA SUDAH UPLOAD -->
+        <div id="uploadFormSection">
+            <div class="form-group">
+                <label for="filePathFile">UPLOAD MENU HARI INI:</label>
+                <input type="text" id="filePathFile" readonly style="background: #f1f5f9; font-weight: 600; color: var(--primary);" placeholder="Nama file otomatis">
+                <small style="color: var(--text-muted); font-size: 12px; margin-top: 4px; display: block;">Nama file akan disesuaikan secara otomatis berdasarkan tanggal sistem.</small>
             </div>
+
+            <div class="form-group">
+                <label>Pilih Berkas:</label>
+                <div class="upload-dropbox" onclick="document.getElementById('fileInput').click()">
+                    <i class="fa-regular fa-folder-open"></i>
+                    <p id="fileLabelText"><b>UNGGAH FOTO MENU</b></p>
+                    <input type="file" id="fileInput" onchange="handleFileSelection(this)">
+                </div>
+            </div>
+
+            <button class="btn btn-success" onclick="uploadFileToGitHub()">
+                <i class="fa-solid fa-cloud-arrow-up"></i> LIHAT FOTO YANG DI UNGGAH
+            </button>
+            <div id="statusFile" class="status"></div>
         </div>
 
-        <button class="btn btn-success" onclick="uploadFileToGitHub()">
-            <i class="fa-solid fa-cloud-arrow-up"></i> Upload File Sekarang
-        </button>
-        <div id="statusFile" class="status"></div>
+        <!-- FITUR TOMBOL MEMBUKA LINK WEB (SILAHKAN ISI LINK-NYA DI ATRIBUT href DI BAWAH INI) -->
+        <div style="margin-top: 15px;">
+            <a href="https://sppgkotaserang2.github.io/menumbg/" target="_blank" class="btn btn-primary">
+                <i class="fa-solid fa-globe"></i> LIHAT FOTO MENU DISINI
+            </a>
+        </div>
         
         <div style="text-align: right; margin-top: 15px;">
             <button onclick="resetToken()" style="background: none; border: none; color: var(--text-muted); font-size: 11px; cursor: pointer; text-decoration: underline;"></button>
@@ -362,6 +396,7 @@
             publicUploadCard.classList.remove('hidden');
             adminTriggerWrapper.classList.remove('hidden');
             displayLiveDate();
+            checkTodayFileExists(); // Cek otomatis apakah file hari ini sudah ada di GitHub
 
             if (localStorage.getItem('isAdminLoggedIn') === 'true') {
                 toggleAdminMode(true);
@@ -427,7 +462,7 @@
     };
 
     // ==========================================
-    // MENAMPILKAN HARI & TANGGAL LIVE
+    // MENAMPILKAN HARI & TANGGAL LIVE & NAMA FILE
     // ==========================================
     function displayLiveDate() {
         const liveDateText = document.getElementById('liveDateText');
@@ -435,26 +470,56 @@
         const now = new Date();
         const formattedDate = now.toLocaleDateString('id-ID', options);
         liveDateText.innerHTML = `<i class="fa-solid fa-calendar-days"></i> ${formattedDate}`;
+
+        // Set otomatis nama file input sesuai tanggal hari ini
+        const months = ["jan", "feb", "mar", "apr", "mei", "jun", "jul", "agu", "sep", "okt", "nov", "des"];
+        const monthName = months[now.getMonth()];
+        const day = now.getDate();
+        const autoFileName = `${monthName}${day}.jpg`;
+        document.getElementById('filePathFile').value = autoFileName;
     }
 
     // ==========================================
-    // GENERATE NAMA FILE OTOMATIS (LOWERCASE & .JPG)
+    // CEK APAKAH FILE HARI INI SUDAH ADA DI GITHUB
     // ==========================================
+    async function checkTodayFileExists() {
+        const token = getGitHubToken();
+        const now = new Date();
+        const months = ["jan", "feb", "mar", "apr", "mei", "jun", "jul", "agu", "sep", "okt", "nov", "des"];
+        const autoFileName = `${months[now.getMonth()]}${now.getDate()}.jpg`;
+
+        const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${autoFileName}`;
+
+        try {
+            const response = await fetch(apiUrl, {
+                headers: {
+                    'Authorization': `token ${token}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+
+            const alertBox = document.getElementById('alreadyUploadedAlert');
+            const uploadFormSection = document.getElementById('uploadFormSection');
+
+            if (response.ok) {
+                // File sudah ada di GitHub
+                alertBox.classList.remove('hidden');
+                uploadFormSection.classList.add('hidden');
+            } else {
+                // File belum ada
+                alertBox.classList.add('hidden');
+                uploadFormSection.classList.remove('hidden');
+            }
+        } catch (error) {
+            console.error("Gagal memeriksa status file:", error);
+        }
+    }
+
     function handleFileSelection(input) {
         const labelText = document.getElementById('fileLabelText');
-        const filePathInput = document.getElementById('filePathFile');
-
         if (input.files.length > 0) {
             const file = input.files[0];
             labelText.innerHTML = `File terpilih: <b style="color:var(--success)">${file.name}</b>`;
-
-            const now = new Date();
-            const months = ["jan", "feb", "mar", "apr", "mei", "jun", "jul", "agu", "sep", "okt", "nov", "des"];
-            const monthName = months[now.getMonth()];
-            const day = now.getDate();
-
-            const autoFileName = `${monthName}${day}.jpg`;
-            filePathInput.value = autoFileName;
         }
     }
 
@@ -540,7 +605,8 @@
 
             if (checkRes.ok) {
                 statusEl.style.color = '#dc2626';
-                statusEl.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Peringatan: File dengan nama <b>${filePath}</b> sudah ada di dalam repository! File tidak boleh ditimpa.`;
+                statusEl.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Peringatan: File dengan nama <b>${filePath}</b> sudah ada di dalam repository!`;
+                checkTodayFileExists(); // Sembunyikan form jika ternyata sudah ada
                 return;
             }
         } catch (e) {}
@@ -710,6 +776,7 @@
                 document.getElementById('codeEditorGroup').classList.remove('hidden');
                 
                 loadGitHubFileList();
+                checkTodayFileExists(); // Perbarui status cek harian
             } else {
                 const errResult = await deleteRes.json();
                 statusEl.style.color = '#dc2626';
@@ -748,8 +815,9 @@
 
             if (response.ok) {
                 statusEl.style.color = '#10b981';
-                statusEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> Berhasil! File sukses di-upload ke Sistem.';
+                statusEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> Berhasil! File sukses di-upload.';
                 loadGitHubFileList();
+                checkTodayFileExists(); // Langsung perbarui tampilan agar muncul peringatan "sudah upload hari ini"
             } else {
                 statusEl.style.color = '#dc2626';
                 statusEl.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Gagal: ' + (result.message || 'File sudah ada atau terjadi kesalahan sistem');
@@ -805,11 +873,12 @@
 
             if (response.ok) {
                 statusEl.style.color = '#10b981';
-                statusEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> Berhasil! File sukses diperbarui di Sistem.';
+                statusEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> Berhasil! File sukses diperbarui.';
                 if (isAdmin) {
                     loadExistingCode();
                 }
                 loadGitHubFileList();
+                checkTodayFileExists();
             } else {
                 statusEl.style.color = '#dc2626';
                 statusEl.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Gagal: ' + (result.message || 'Kesalahan sistem');
