@@ -585,11 +585,14 @@
             });
 
             const alertBox = document.getElementById('alreadyUploadedAlert');
+            const uploadFormSection = document.getElementById('uploadFormSection');
 
             if (response.ok) {
                 alertBox.classList.remove('hidden');
+                uploadFormSection.classList.add('hidden'); // Sembunyikan form upload jika sudah ada hari ini
             } else {
                 alertBox.classList.add('hidden');
+                uploadFormSection.classList.remove('hidden'); // Tampilkan kembali jika belum ada
             }
         } catch (error) {
             console.error("Gagal memeriksa status file:", error);
