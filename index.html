@@ -728,8 +728,8 @@
         
         }
 
-        const websiteUrl = 'https://sppgkotaserang2.github.io/menumbg';
-        const message = `✨ *PEMBERITAHUAN UPLOAD MENU MBG* ✨\n\nADMIN telah berhasil mengunggah foto menu baru.\n📁 *File:* ${filePath}\n\nSilakan cek foto menu terbaru di:\n🔗 ${websiteUrl}\n\nTerima kasih!`;
+        const websiteUrl = 'bit.ly/LabelMenuMBG';
+        const message = `✨ *PEMBERITAHUAN UPLOAD MENU MBG* ✨\n\nAdmin telah berhasil mengunggah foto menu baru.\n📁 *File:* ${filePath}\n\nSilakan cek foto menu terbaru di:\n🔗 ${websiteUrl}\n🔗 bit.ly/UploadMenu\n\nTerima kasih!`;
 
         const waPayload = new URLSearchParams();
         waPayload.append('target', WHATSAPP_TARGET);
@@ -749,7 +749,6 @@
             if (waStatusEl) {
                 if (result.status === true || response.ok) {
                     waStatusEl.style.color = '#10b981';
-                
                 } else {
                     waStatusEl.style.color = '#dc2626';
                     waStatusEl.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> WhatsApp Gagal: ${result.reason || 'Token salah / Device disconnect'}`;
