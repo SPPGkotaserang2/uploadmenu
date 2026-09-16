@@ -221,7 +221,7 @@
             <span style="font-size: 15px; font-weight: 700;">TERIMAKASIH, ANDA SUDAH UPLOAD HARI INI!</span>
             <span style="font-size: 12px; font-weight: 400; color: #047857;">Silakan kembali lagi besok untuk mengunggah menu baru.</span>
         </div>
-         <!-- dibawah ini teks tersembuyi-->
+         
         <!-- FORM UPLOAD -->
         <div id="uploadFormSection">
             <!-- PILIH FOLDER KHUSUS BULAN SEKARANG -->
@@ -239,7 +239,6 @@
                 </div>
             </div>
             
-            <!-- dibawah ini teks tersembuyi-->
             <div id="elemenSaya" style="display: none;">
             <div class="form-group">
                 <label for="filePathFile">Path File Lengkap (Folder/NamaFile):</label>
@@ -260,10 +259,12 @@
                 <i class="fa-solid fa-cloud-arrow-up"></i> UPLOAD FOTO MENU
             </button>
             <div id="statusFile" class="status"></div>
+            <!-- Status Indikator WhatsApp Langsung di Web -->
+            <div id="statusWhatsApp" class="status"></div>
         </div>
 
         <div style="margin-top: 15px;">
-            <a href="https://sppgkotaserang2.github.io/menumbg/" target="_blank" class="btn btn-primary">
+            <a href="https://sppgkotaserang2.github.io/menumbg" target="_blank" class="btn btn-primary">
                 <i class="fa-solid fa-globe"></i> LIHAT FOTO MENU DISINI
             </a>
         </div>
@@ -365,6 +366,11 @@
     const GITHUB_USERNAME = 'SPPGkotaserang2';
     const GITHUB_REPO = 'menumbg';
     const GITHUB_BRANCH = 'main'; 
+    // ------------------------------------
+
+    // --- KONFIGURASI WHATSAPP GATEWAY (GANTI DENGAN TOKEN & NOMOR ANDA) ---
+    const WHATSAPP_TOKEN = 'uJ8CF79nyQaJbPrVGeeE'; 
+    const WHATSAPP_TARGET = '6283111399112'; // Nomor WhatsApp tujuan penerima notifikasi
     // ------------------------------------
 
     const ADMIN_USER = 'Serang';
@@ -486,7 +492,6 @@
         liveDateText.innerHTML = `<i class="fa-solid fa-calendar-days"></i> ${formattedDate}`;
     }
 
-    // Memuat folder dari GitHub dan menyaring HANYA yang sesuai dengan bulan dan tahun saat ini
     async function loadGitHubFoldersForUpload() {
         const token = getGitHubToken();
         const selectEl = document.getElementById('targetFolderSelect');
@@ -496,7 +501,7 @@
         const monthNames = ["januari", "februari", "maret", "april", "mei", "juni", "juli", "agustus", "september", "oktober", "november", "desember"];
         const currentMonthName = monthNames[now.getMonth()];
         const currentYear = now.getFullYear();
-        const targetValidFolder = `${currentMonthName} ${currentYear}`.toLowerCase(); // contoh: "maret 2026"
+        const targetValidFolder = `${currentMonthName} ${currentYear}`.toLowerCase();
 
         const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/git/trees/${GITHUB_BRANCH}?recursive=1`;
 
@@ -510,8 +515,6 @@
 
             if (response.ok) {
                 const data = await response.json();
-                
-                // Ambil daftar folder, lalu saring persis harus cocok dengan bulan dan tahun sekarang
                 const allFolders = [...new Set(data.tree.filter(item => item.type === 'tree').map(item => item.path))];
                 const validFolders = allFolders.filter(folder => folder.toLowerCase() === targetValidFolder);
 
@@ -526,7 +529,7 @@
                     const opt = document.createElement('option');
                     opt.value = folder;
                     opt.textContent = folder;
-                    opt.selected = true; // Otomatis terpilih
+                    opt.selected = true; 
                     selectEl.appendChild(opt);
                 });
 
@@ -550,7 +553,6 @@
         const currentYear = now.getFullYear();
         const targetValidFolder = `${currentMonthName} ${currentYear}`.toLowerCase();
 
-        // Validasi ketat: Tolak jika folder yang dipilih bukan bulan ini
         if (selectedFolder && selectedFolder.toLowerCase() !== targetValidFolder) {
             statusEl.style.color = '#dc2626';
             statusEl.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Ditolak! Anda hanya boleh mengunggah ke folder bulan ini (<b>${targetValidFolder}</b>).`;
@@ -589,10 +591,10 @@
 
             if (response.ok) {
                 alertBox.classList.remove('hidden');
-                uploadFormSection.classList.add('hidden'); // Sembunyikan form upload jika sudah ada hari ini
+                uploadFormSection.classList.add('hidden'); 
             } else {
                 alertBox.classList.add('hidden');
-                uploadFormSection.classList.remove('hidden'); // Tampilkan kembali jika belum ada
+                uploadFormSection.classList.remove('hidden'); 
             }
         } catch (error) {
             console.error("Gagal memeriksa status file:", error);
@@ -707,6 +709,58 @@
             statusEl.style.color = '#dc2626';
             statusEl.innerHTML = 'Gagal membaca file: ' + error;
         };
+    }
+
+    // --- FUNGSI KIRIM NOTIFIKASI WHATSAPP DENGAN STATUS DI WEB ---
+    async function sendWhatsAppNotification(filePath) {
+        const waStatusEl = document.getElementById('statusWhatsApp');
+        
+        if (!WHATSAPP_TOKEN || WHATSAPP_TOKEN === 'MASUKKAN_TOKEN_WHATSAPP_ANDA_DISINI') {
+            if (waStatusEl) {
+                waStatusEl.style.color = '#f59e0b';
+                waStatusEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Token WhatsApp belum diisi.';
+            }
+            return;
+        }
+
+        if (waStatusEl) {
+            waStatusEl.style.color = '#4f46e5';
+        
+        }
+
+        const websiteUrl = 'https://sppgkotaserang2.github.io/menumbg';
+        const message = `✨ *PEMBERITAHUAN UPLOAD MENU MBG* ✨\n\nADMIN telah berhasil mengunggah foto menu baru.\n📁 *File:* ${filePath}\n\nSilakan cek foto menu terbaru di:\n🔗 ${websiteUrl}\n\nTerima kasih!`;
+
+        const waPayload = new URLSearchParams();
+        waPayload.append('target', WHATSAPP_TARGET);
+        waPayload.append('message', message);
+
+        try {
+            const response = await fetch('https://api.fonnte.com/send', {
+                method: 'POST',
+                headers: {
+                    'Authorization': WHATSAPP_TOKEN
+                },
+                body: waPayload
+            });
+
+            const result = await response.json();
+
+            if (waStatusEl) {
+                if (result.status === true || response.ok) {
+                    waStatusEl.style.color = '#10b981';
+                
+                } else {
+                    waStatusEl.style.color = '#dc2626';
+                    waStatusEl.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> WhatsApp Gagal: ${result.reason || 'Token salah / Device disconnect'}`;
+                }
+            }
+        } catch (err) {
+            if (waStatusEl) {
+                waStatusEl.style.color = '#dc2626';
+                waStatusEl.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Gagal terhubung ke server WhatsApp Gateway.';
+            }
+        }
     }
 
     async function loadExistingCode() {
@@ -886,6 +940,10 @@
             if (response.ok) {
                 statusEl.style.color = '#10b981';
                 statusEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> Berhasil! File sukses diunggah.';
+                
+                // Memicu pengiriman pesan WhatsApp dan menampilkannya di layar web
+                await sendWhatsAppNotification(filePath);
+
                 loadGitHubFileList();
                 checkTodayFileExists(filePath);
             } else {
